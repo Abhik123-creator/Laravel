@@ -81,7 +81,7 @@ class ContentTypeResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\FieldsRelationManager::class,
         ];
     }
 

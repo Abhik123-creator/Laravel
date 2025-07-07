@@ -35,6 +35,12 @@ class ContentEntryController extends Controller
                 case 'date':
                     $rules[$field->name] = 'required|date';
                     break;
+                case 'text':
+                    $rules[$field->name] = 'required|string';
+                    break;
+                case 'email':
+                    $rules[$field->name] = 'required|email';
+                    break;
                 default:
                     $rules[$field->name] = 'required';
             }
