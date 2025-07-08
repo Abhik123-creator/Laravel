@@ -70,8 +70,14 @@
                         <div>
                             <label for="{{ $field->name }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 {{ $field->label ?: ucfirst($field->name) }}
-                                <span class="text-red-500">*</span>
+                                @if($field->required ?? true)
+                                    <span class="text-red-500">*</span>
+                                @endif
                             </label>
+                            
+                            @if($field->description)
+                                <p class="text-sm text-gray-500 mb-2">{{ $field->description }}</p>
+                            @endif
                             
                             @switch($field->type)
                                 @case('text')
@@ -135,6 +141,70 @@
                                             Yes, {{ strtolower($field->label ?: $field->name) }}
                                         </label>
                                     </div>
+                                    @break
+                                
+                                @case('radio')
+                                    <div class="space-y-2">
+                                        @if($field->options && is_array($field->options))
+                                            @foreach($field->options as $option)
+                                                <div class="flex items-center">
+                                                    <input 
+                                                        type="radio" 
+                                                        id="{{ $field->name }}_{{ $loop->index }}" 
+                                                        name="{{ $field->name }}" 
+                                                        value="{{ $option['value'] }}"
+                                                        {{ old($field->name) == $option['value'] ? 'checked' : '' }}
+                                                        class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 @error($field->name) border-red-300 @enderror"
+                                                    >
+                                                    <label for="{{ $field->name }}_{{ $loop->index }}" class="ml-3 text-sm text-gray-700">
+                                                        {{ $option['label'] }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                    @break
+                                
+                                @case('checkbox')
+                                    <div class="space-y-2">
+                                        @if($field->options && is_array($field->options))
+                                            @foreach($field->options as $option)
+                                                <div class="flex items-center">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        id="{{ $field->name }}_{{ $loop->index }}" 
+                                                        name="{{ $field->name }}[]" 
+                                                        value="{{ $option['value'] }}"
+                                                        {{ is_array(old($field->name)) && in_array($option['value'], old($field->name)) ? 'checked' : '' }}
+                                                        class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded @error($field->name) border-red-300 @enderror"
+                                                    >
+                                                    <label for="{{ $field->name }}_{{ $loop->index }}" class="ml-3 text-sm text-gray-700">
+                                                        {{ $option['label'] }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                    @break
+                                
+                                @case('select')
+                                    <select 
+                                        id="{{ $field->name }}" 
+                                        name="{{ $field->name }}"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm @error($field->name) border-red-300 @enderror"
+                                    >
+                                        <option value="">Choose {{ strtolower($field->label ?: $field->name) }}</option>
+                                        @if($field->options && is_array($field->options))
+                                            @foreach($field->options as $option)
+                                                <option 
+                                                    value="{{ $option['value'] }}"
+                                                    {{ old($field->name) == $option['value'] ? 'selected' : '' }}
+                                                >
+                                                    {{ $option['label'] }}
+                                                </option>
+                                            @endforeach
+                                        @endif
+                                    </select>
                                     @break
                                 
                                 @default

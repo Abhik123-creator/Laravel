@@ -35,27 +35,59 @@ class ContentEntryController extends Controller
         }
         
         foreach ($contentType->fields as $field) {
+            $fieldRules = [];
+            
+            // Add required rule if field is marked as required
+            if ($field->required ?? true) {
+                $fieldRules[] = 'required';
+            }
+            
             switch ($field->type) {
                 case 'string':
-                    $rules[$field->name] = 'required|string';
+                    $fieldRules[] = 'string';
                     break;
                 case 'integer':
-                    $rules[$field->name] = 'required|integer';
+                    $fieldRules[] = 'integer';
                     break;
                 case 'boolean':
-                    $rules[$field->name] = 'required|boolean';
+                    $fieldRules[] = 'boolean';
                     break;
                 case 'date':
-                    $rules[$field->name] = 'required|date';
+                    $fieldRules[] = 'date';
                     break;
                 case 'text':
-                    $rules[$field->name] = 'required|string';
+                    $fieldRules[] = 'string';
                     break;
                 case 'email':
-                    $rules[$field->name] = 'required|email';
+                    $fieldRules[] = 'email';
+                    break;
+                case 'radio':
+                case 'select':
+                    // Validate that the selected value is one of the allowed options
+                    if ($field->options && is_array($field->options)) {
+                        $allowedValues = array_column($field->options, 'value');
+                        $fieldRules[] = 'in:' . implode(',', $allowedValues);
+                    }
+                    break;
+                case 'checkbox':
+                    // For checkboxes, validate that it's an array and all values are allowed
+                    $fieldRules[] = 'array';
+                    if ($field->options && is_array($field->options)) {
+                        $allowedValues = array_column($field->options, 'value');
+                        if ($field->required ?? true) {
+                            $fieldRules[] = 'min:1'; // At least one selection required if field is required
+                        }
+                        $rules[$field->name . '.*'] = 'in:' . implode(',', $allowedValues);
+                    }
                     break;
                 default:
-                    $rules[$field->name] = 'required';
+                    if ($field->required ?? true) {
+                        $fieldRules[] = 'required';
+                    }
+            }
+            
+            if (!empty($fieldRules)) {
+                $rules[$field->name] = implode('|', $fieldRules);
             }
         }
 

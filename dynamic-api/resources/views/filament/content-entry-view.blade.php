@@ -23,7 +23,19 @@
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                     {{ $value ? 'True' : 'False' }}
                                 </span>
-                            @elseif(is_array($value) || is_object($value))
+                            @elseif(is_array($value))
+                                @if(count($value) > 0)
+                                    <div class="space-y-1">
+                                        @foreach($value as $item)
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                {{ $item }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-gray-500">No selections</span>
+                                @endif
+                            @elseif(is_object($value))
                                 <pre class="text-xs bg-gray-100 dark:bg-gray-700 p-2 rounded overflow-auto">{{ json_encode($value, JSON_PRETTY_PRINT) }}</pre>
                             @else
                                 {{ $value }}

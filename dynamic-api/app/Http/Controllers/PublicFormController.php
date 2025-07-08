@@ -61,15 +61,19 @@ class PublicFormController extends Controller
         foreach ($form->fields as $field) {
             $fieldRules = [];
             
-            // Add required rule if needed (assuming all fields are required for now)
-            $fieldRules[] = 'required';
+            // Add required rule if field is marked as required
+            if ($field->required ?? true) {
+                $fieldRules[] = 'required';
+            }
             
             // Add type-specific rules
             switch ($field->type) {
                 case 'string':
-                case 'text':
                     $fieldRules[] = 'string';
                     $fieldRules[] = 'max:255';
+                    break;
+                case 'text':
+                    $fieldRules[] = 'string';
                     break;
                 case 'integer':
                     $fieldRules[] = 'integer';
@@ -83,10 +87,37 @@ class PublicFormController extends Controller
                 case 'email':
                     $fieldRules[] = 'email';
                     break;
+                case 'radio':
+                case 'select':
+                    // Validate that the selected value is one of the allowed options
+                    if ($field->options && is_array($field->options)) {
+                        $allowedValues = array_column($field->options, 'value');
+                        $fieldRules[] = 'in:' . implode(',', $allowedValues);
+                    }
+                    break;
+                case 'checkbox':
+                    // For checkboxes, validate that it's an array and all values are allowed
+                    $fieldRules[] = 'array';
+                    if ($field->options && is_array($field->options)) {
+                        $allowedValues = array_column($field->options, 'value');
+                        $fieldRules[] = 'min:1'; // At least one selection required if field is required
+                        $rules[$field->name . '.*'] = 'in:' . implode(',', $allowedValues);
+                    }
+                    break;
             }
             
-            $rules[$field->name] = implode('|', $fieldRules);
-            $messages[$field->name . '.required'] = $field->label . ' is required.';
+            if (!empty($fieldRules)) {
+                $rules[$field->name] = implode('|', $fieldRules);
+            }
+            
+            // Custom error messages
+            if ($field->required ?? true) {
+                $messages[$field->name . '.required'] = ($field->label ?: ucfirst($field->name)) . ' is required.';
+            }
+            
+            if ($field->type === 'checkbox') {
+                $messages[$field->name . '.min'] = 'Please select at least one ' . strtolower($field->label ?: $field->name) . '.';
+            }
         }
 
         // Validate the request

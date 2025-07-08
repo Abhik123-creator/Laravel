@@ -17,3 +17,35 @@ Route::get('/captcha/{slug}', function ($slug) {
     
     return response()->json(CaptchaService::generate($contentType->captcha_difficulty));
 })->name('api.captcha.get');
+
+// Get list of available forms
+Route::get('/forms', function () {
+    $forms = \App\Models\ContentType::where('is_active', true)
+        ->select('id', 'name', 'slug', 'description')
+        ->get();
+    
+    return response()->json([
+        'success' => true,
+        'forms' => $forms
+    ]);
+});
+
+// Get form details
+Route::get('/forms/{slug}', function ($slug) {
+    $form = \App\Models\ContentType::where('slug', $slug)
+        ->where('is_active', true)
+        ->with('fields')
+        ->first();
+    
+    if (!$form) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Form not found'
+        ], 404);
+    }
+    
+    return response()->json([
+        'success' => true,
+        'form' => $form
+    ]);
+});

@@ -11,6 +11,14 @@ class FieldDefinition extends Model
         'name',
         'label',
         'type',
+        'options',
+        'required',
+        'description',
+    ];
+
+    protected $casts = [
+        'options' => 'array',
+        'required' => 'boolean',
     ];
 
     public function contentType()

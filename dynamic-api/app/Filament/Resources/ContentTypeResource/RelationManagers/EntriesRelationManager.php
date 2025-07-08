@@ -60,6 +60,22 @@ class EntriesRelationManager extends RelationManager
                                     return $value;
                                 case 'integer':
                                     return number_format($value);
+                                case 'checkbox':
+                                    if (is_array($value)) {
+                                        return implode(', ', $value);
+                                    }
+                                    return $value;
+                                case 'radio':
+                                case 'select':
+                                    // Try to find the label for the selected value
+                                    if ($field->options && is_array($field->options)) {
+                                        foreach ($field->options as $option) {
+                                            if ($option['value'] === $value) {
+                                                return $option['label'];
+                                            }
+                                        }
+                                    }
+                                    return $value;
                                 default:
                                     // Truncate long text
                                     if (is_string($value) && strlen($value) > 50) {

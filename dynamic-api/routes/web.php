@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\PublicFormController;
+use App\Http\Controllers\EmbedController;
 use App\Services\CaptchaService;
 
 Route::get('/', function () {
@@ -14,6 +15,13 @@ Route::prefix('forms')->group(function () {
     Route::get('{slug}', [PublicFormController::class, 'show'])->name('public.form.show');
     Route::post('{slug}', [PublicFormController::class, 'submit'])->name('public.form.submit');
     Route::get('{slug}/success', [PublicFormController::class, 'success'])->name('public.form.success');
+});
+
+// Embeddable form routes
+Route::prefix('embed')->group(function () {
+    Route::get('forms/{slug}', [EmbedController::class, 'show'])->name('embed.form.show');
+    Route::post('forms/{slug}', [EmbedController::class, 'submit'])->name('embed.form.submit');
+    Route::get('forms/{slug}/success', [EmbedController::class, 'success'])->name('embed.form.success');
 });
 
 // Captcha routes
