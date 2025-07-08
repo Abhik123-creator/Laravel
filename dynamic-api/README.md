@@ -4,9 +4,9 @@ A Laravel-based dynamic API system that allows you to create flexible content ty
 
 ## 🚀 Features
 
-- **Dynamic Content Types**: Create flexible content structures on the fly
-- **Field Management**: Define custom fields for each content type with validation
-- **REST API**: Automatically generated API endpoints for each content type
+- **Dynamic Forms**: Create flexible form structures on the fly
+- **Field Management**: Define custom fields for each form with validation
+- **REST API**: Automatically generated API endpoints for each form
 - **Admin Interface**: Beautiful Filament-powered admin panel
 - **Dynamic Validation**: Automatic validation based on field definitions
 - **Type Safety**: Support for multiple field types (string, integer, boolean, date, email, text)
@@ -92,17 +92,17 @@ Default admin credentials:
 
 ## 🎯 Usage
 
-### Step 1: Create Content Types
+### Step 1: Create Forms
 
 1. Access the admin panel at `http://localhost:8000/admin`
-2. Navigate to "Content Types"
-3. Click "New" to create a content type
+2. Navigate to "Forms"
+3. Click "New" to create a form
 4. Enter a name (e.g., "Student") - the slug will auto-generate
-5. Save the content type
+5. Save the form
 
 ### Step 2: Define Fields
 
-1. Click "Edit" on your newly created content type
+1. Click "Edit" on your newly created form
 2. Navigate to the "Fields" tab
 3. Add fields by clicking "New Field"
 4. Configure each field:
@@ -112,7 +112,7 @@ Default admin credentials:
 
 ### Step 3: Use the API
 
-Once you have content types with fields, you can use the API to store data:
+Once you have forms with fields, you can use the API to store data:
 
 ```bash
 POST /api/content/{slug}
@@ -139,7 +139,7 @@ POST /api/content/{slug}
 ```
 
 **Parameters:**
-- `{slug}`: The slug of the content type
+- `{slug}`: The slug of the form
 
 **Request Body:**
 ```json
@@ -180,12 +180,12 @@ POST /api/content/{slug}
 
 ## 🖥️ Admin Interface
 
-### Content Types Management
+### Forms Management
 
 **URL**: `http://localhost:8000/admin/content-types`
 
 **Features:**
-- Create, edit, and delete content types
+- Create, edit, and delete forms
 - Auto-generate slugs from names
 - View creation and modification dates
 
@@ -194,14 +194,14 @@ POST /api/content/{slug}
 **URL**: `http://localhost:8000/admin/content-types/{id}/edit` (Fields tab)
 
 **Features:**
-- Add/edit/delete fields for each content type
+- Add/edit/delete fields for each form
 - Color-coded field types
 - Searchable and sortable fields
 - Copy field names for API reference
 
 ## 🗄️ Database Schema
 
-### Content Types Table
+### Forms Table
 ```sql
 CREATE TABLE content_types (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -242,7 +242,7 @@ CREATE TABLE content_entries (
 
 ### Example 1: Student Management System
 
-1. **Create Content Type**
+1. **Create Form**
    - Name: "Student"
    - Slug: "student"
 
@@ -266,7 +266,7 @@ CREATE TABLE content_entries (
 
 ### Example 2: Product Catalog
 
-1. **Create Content Type**
+1. **Create Form**
    - Name: "Product"
    - Slug: "product"
 
@@ -299,11 +299,11 @@ app/
 ├── Http/Controllers/Api/
 │   └── ContentEntryController.php    # API endpoint controller
 ├── Models/
-│   ├── ContentType.php               # Content type model
+│   ├── ContentType.php               # Form model
 │   ├── FieldDefinition.php           # Field definition model
 │   └── ContentEntry.php              # Content entry model
 ├── Filament/Resources/
-│   ├── ContentTypeResource.php       # Admin interface for content types
+│   ├── ContentTypeResource.php       # Admin interface for forms
 │   └── ContentTypeResource/RelationManagers/
 │       └── FieldsRelationManager.php # Fields management interface
 database/
@@ -400,12 +400,12 @@ php artisan view:clear
 ```
 
 #### 2. Field 'name' doesn't have a default value
-**Problem**: Database error when creating content types.
+**Problem**: Database error when creating forms.
 
 **Solution**: Make sure the ContentTypeResource form has proper field definitions.
 
-#### 3. Content Type Not Found
-**Problem**: API returns 404 for existing content types.
+#### Form Not Found
+**Problem**: API returns 404 for existing forms.
 
 **Solution**: Check that the slug matches exactly (case-sensitive).
 
