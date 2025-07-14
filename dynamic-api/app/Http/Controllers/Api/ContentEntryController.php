@@ -8,6 +8,8 @@ use App\Models\ContentEntry;
 use App\Services\CaptchaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class ContentEntryController extends Controller
 {
@@ -36,12 +38,10 @@ class ContentEntryController extends Controller
         
         foreach ($contentType->fields as $field) {
             $fieldRules = [];
-            
             // Add required rule if field is marked as required
             if ($field->required ?? true) {
                 $fieldRules[] = 'required';
             }
-            
             switch ($field->type) {
                 case 'string':
                     $fieldRules[] = 'string';
@@ -64,20 +64,24 @@ class ContentEntryController extends Controller
                 case 'radio':
                 case 'select':
                     // Validate that the selected value is one of the allowed options
-                    if ($field->options && is_array($field->options)) {
+                    if (!empty($field->options) && is_array($field->options)) {
                         $allowedValues = array_column($field->options, 'value');
-                        $fieldRules[] = 'in:' . implode(',', $allowedValues);
+                        if (!empty($allowedValues)) {
+                            $fieldRules[] = 'in:' . implode(',', $allowedValues);
+                        }
                     }
                     break;
                 case 'checkbox':
                     // For checkboxes, validate that it's an array and all values are allowed
                     $fieldRules[] = 'array';
-                    if ($field->options && is_array($field->options)) {
+                    if (!empty($field->options) && is_array($field->options)) {
                         $allowedValues = array_column($field->options, 'value');
-                        if ($field->required ?? true) {
-                            $fieldRules[] = 'min:1'; // At least one selection required if field is required
+                        if (!empty($allowedValues)) {
+                            if ($field->required ?? true) {
+                                $fieldRules[] = 'min:1'; // At least one selection required if field is required
+                            }
+                            $rules[$field->name . '.*'] = 'in:' . implode(',', $allowedValues);
                         }
-                        $rules[$field->name . '.*'] = 'in:' . implode(',', $allowedValues);
                     }
                     break;
                 default:
@@ -85,7 +89,6 @@ class ContentEntryController extends Controller
                         $fieldRules[] = 'required';
                     }
             }
-            
             if (!empty($fieldRules)) {
                 $rules[$field->name] = implode('|', $fieldRules);
             }
@@ -110,11 +113,22 @@ class ContentEntryController extends Controller
         if ($contentType->captcha_enabled) {
             $dataFields = array_diff($dataFields, ['captcha_answer', 'captcha_id']);
         }
-        
+        // Only allow fields that are actually defined in the form
+        $allowedFieldNames = collect($contentType->fields)->pluck('name')->toArray();
+        $dataFields = array_intersect($dataFields, $allowedFieldNames);
+
         $entry = ContentEntry::create([
             'content_type_id' => $contentType->id,
             'data' => $request->only($dataFields),
         ]);
+
+        // Send email to admin
+        try {
+            $adminEmail = config('mail.admin_address', 'admin@example.com');
+            Mail::to($adminEmail)->send(new \App\Mail\NewFormSubmission($contentType->name, $entry->data));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send admin notification email: ' . $e->getMessage(), ['exception' => $e]);
+        }
 
         return response()->json(['message' => 'Entry saved successfully.', 'id' => $entry->id], 201);
     }
